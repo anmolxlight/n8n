@@ -1,7 +1,7 @@
 import { Logger, parseFlatted } from '@n8n/backend-common';
-import { hasGlobalScope } from '@n8n/permissions';
 import { GlobalConfig } from '@n8n/config';
 import { Service } from '@n8n/di';
+import { hasGlobalScope } from '@n8n/permissions';
 import type {
 	FindManyOptions,
 	FindOneOptions,
