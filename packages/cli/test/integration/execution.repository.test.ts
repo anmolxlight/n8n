@@ -1,7 +1,9 @@
 import { createWorkflow, testDb } from '@n8n/backend-test-utils';
+import type { User } from '@n8n/db';
 import { ExecutionRepository } from '@n8n/db';
 import { Container } from '@n8n/di';
 import { createExecution } from '@test-integration/db/executions';
+import { createOwner } from '@test-integration/db/users';
 import { stringify, parse } from 'flatted';
 import { DateTime } from 'luxon';
 import type { ExecutionStatus } from 'n8n-workflow';
@@ -9,10 +11,12 @@ import { createEmptyRunExecutionData, createRunExecutionData } from 'n8n-workflo
 
 describe('UserRepository', () => {
 	let executionRepository: ExecutionRepository;
+	let owner: User;
 
 	beforeAll(async () => {
 		await testDb.init();
 		executionRepository = Container.get(ExecutionRepository);
+		owner = await createOwner();
 	});
 
 	beforeEach(async () => {
@@ -26,7 +30,7 @@ describe('UserRepository', () => {
 	describe('findManyByRangeQuery', () => {
 		test('sort by `createdAt` if `startedAt` is null', async () => {
 			const now = DateTime.utc();
-			const workflow = await createWorkflow();
+			const workflow = await createWorkflow({}, owner);
 			const execution1 = await createExecution(
 				{
 					createdAt: now.plus({ minute: 1 }).toJSDate(),
@@ -51,7 +55,7 @@ describe('UserRepository', () => {
 
 			const executions = await executionRepository.findManyByRangeQuery({
 				workflowId: workflow.id,
-				accessibleWorkflowIds: [workflow.id],
+				user: owner,
 				kind: 'range',
 				range: { limit: 10 },
 				order: { startedAt: 'DESC' },
@@ -92,7 +96,7 @@ describe('UserRepository', () => {
 			async ({ statusInDB, statusUpdate, conditions, updateExpected }) => {
 				// ARRANGE
 
-				const workflow = await createWorkflow();
+				const workflow = await createWorkflow({}, owner);
 				const executionData = createEmptyRunExecutionData();
 				const execution = await createExecution(
 					{ status: statusInDB, data: stringify(executionData) },
@@ -134,7 +138,7 @@ describe('UserRepository', () => {
 		});
 
 		test('requireNotFinished: should update when finished is false', async () => {
-			const workflow = await createWorkflow();
+			const workflow = await createWorkflow({}, owner);
 			const executionData = createEmptyRunExecutionData();
 			const execution = await createExecution(
 				{ status: 'running', finished: false, data: stringify(executionData) },
@@ -151,7 +155,7 @@ describe('UserRepository', () => {
 		});
 
 		test('requireNotFinished: should not update when finished is true', async () => {
-			const workflow = await createWorkflow();
+			const workflow = await createWorkflow({}, owner);
 			const executionData = createEmptyRunExecutionData();
 			const execution = await createExecution(
 				{ status: 'success', finished: true, data: stringify(executionData) },
@@ -170,7 +174,7 @@ describe('UserRepository', () => {
 		});
 
 		test('requireNotCanceled: should update when status is not canceled', async () => {
-			const workflow = await createWorkflow();
+			const workflow = await createWorkflow({}, owner);
 			const executionData = createEmptyRunExecutionData();
 			const execution = await createExecution(
 				{ status: 'running', data: stringify(executionData) },
@@ -187,7 +191,7 @@ describe('UserRepository', () => {
 		});
 
 		test('requireNotCanceled: should not update when status is canceled', async () => {
-			const workflow = await createWorkflow();
+			const workflow = await createWorkflow({}, owner);
 			const executionData = createEmptyRunExecutionData();
 			const execution = await createExecution(
 				{ status: 'canceled', data: stringify(executionData) },
@@ -206,7 +210,7 @@ describe('UserRepository', () => {
 		});
 
 		test('requireNotFinished + requireNotCanceled: should update running unfinished execution', async () => {
-			const workflow = await createWorkflow();
+			const workflow = await createWorkflow({}, owner);
 			const executionData = createEmptyRunExecutionData();
 			const execution = await createExecution(
 				{ status: 'running', finished: false, data: stringify(executionData) },
@@ -233,7 +237,7 @@ describe('UserRepository', () => {
 		});
 
 		test('requireNotFinished + requireNotCanceled: should not update canceled execution', async () => {
-			const workflow = await createWorkflow();
+			const workflow = await createWorkflow({}, owner);
 			const executionData = createEmptyRunExecutionData();
 			const execution = await createExecution(
 				{ status: 'canceled', finished: false, data: stringify(executionData) },
