@@ -870,10 +870,6 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 	}
 
 	async findManyByRangeQuery(query: ExecutionSummaries.RangeQuery): Promise<ExecutionSummary[]> {
-		if (query?.accessibleWorkflowIds?.length === 0) {
-			throw new UnexpectedError('Expected accessible workflow IDs');
-		}
-
 		// Due to performance reasons, we use custom query builder with raw SQL.
 		// IMPORTANT: it produces duplicate rows for executions with multiple tags, which we need to reduce manually
 		const qb = this.toQueryBuilderWithAnnotations(query);
@@ -964,7 +960,6 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 
 	private toQueryBuilder(query: ExecutionSummaries.Query) {
 		const {
-			accessibleWorkflowIds,
 			user,
 			sharingOptions,
 			status,
@@ -996,9 +991,6 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 			subquery.andWhere('"sw"."workflowId" = execution."workflowId"');
 			qb.where(`EXISTS (${subquery.getQuery()})`);
 			qb.setParameters(subquery.getParameters());
-		} else if (accessibleWorkflowIds?.length) {
-			// Array-based access control (backward compat)
-			qb.where('execution.workflowId IN (:...accessibleWorkflowIds)', { accessibleWorkflowIds });
 		} else {
 			// No access control provided — deny all to prevent unscoped queries
 			qb.where('1 = 0');

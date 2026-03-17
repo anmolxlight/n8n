@@ -206,7 +206,6 @@ export namespace ExecutionSummaries {
 	>; // parsed from query params
 
 	type AccessFields = {
-		accessibleWorkflowIds?: string[];
 		user?: User;
 		sharingOptions?: {
 			scopes?: Scope[];
