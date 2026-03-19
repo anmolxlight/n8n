@@ -589,7 +589,6 @@ export interface OrchestrationContext {
 		credentialId?: string;
 		credentials?: Record<string, string>;
 		autoSetup?: { credentialType: string };
-		mockCredentials?: boolean;
 	}>;
 	/** Chrome DevTools MCP config — only present when browser automation is enabled */
 	browserMcpConfig?: McpServerConfig;

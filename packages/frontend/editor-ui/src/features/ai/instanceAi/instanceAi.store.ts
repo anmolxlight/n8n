@@ -575,7 +575,6 @@ export const useInstanceAiStore = defineStore('instanceAi', () => {
 		autoSetup?: { credentialType: string },
 		userInput?: string,
 		domainAccessAction?: string,
-		mockCredentials?: boolean,
 	): Promise<void> {
 		try {
 			await postConfirmation(
@@ -587,7 +586,6 @@ export const useInstanceAiStore = defineStore('instanceAi', () => {
 				autoSetup,
 				userInput,
 				domainAccessAction,
-				mockCredentials,
 			);
 		} catch {
 			toast.showError(new Error('Failed to send confirmation. Try again.'), 'Confirmation failed');
